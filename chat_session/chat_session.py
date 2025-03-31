@@ -254,9 +254,9 @@ class ChatSession:
                 )
             
         return message
+    
     def _preprocess_generation_model_msg(self, usr_msg, sys_msg=None):
         # TODO: Finish implementation.
-        breakpoint()
         return usr_msg
     
     def _preprocess_msg(self, usr_msg, sys_msg=None, is_generation_model=False):

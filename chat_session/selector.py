@@ -93,6 +93,7 @@ def get_instruct_models() -> list:
         'stabilityai/stable-code-instruct-3b',
         'deepseek-ai/DeepSeek-R1-Distill-Llama-8B',
         'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B',
+        'BanglaLLM/bangla-llama-7b-base-v0.1',
     ])
 
 def get_pipeline_models() -> list:
@@ -109,6 +110,7 @@ def get_pipeline_models() -> list:
         'meta-llama/Llama-3.3-70B-Instruct',
         'deepseek-ai/DeepSeek-R1-Distill-Llama-8B',
         'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B',
+        'BanglaLLM/bangla-llama-7b-base-v0.1',
     ]
 
 def get_wizardlm_models() -> list:
@@ -158,7 +160,8 @@ def get_vllm_models() -> list:
         'meta-llama/Meta-Llama-3-8B-Instruct',
         'meta-llama/Llama-3.1-8B-Instruct',
         'meta-llama/Llama-3.3-70B-Instruct',
-        'deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct'
+        'deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct',
+        # 'BanglaLLM/bangla-llama-7b-base-v0.1'
     ])
 
 def get_generation_models() -> list:
