@@ -27,6 +27,11 @@ class HFGenerateSession(ChatSession):
         # import here because i can't see a better way to set the cache directory
         #os.environ['TRANSFORMERS_CACHE'] = config['model_cache']
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+
+        # Set padding side based on model architecture
+        if self._is_decoder_only_model():
+            self.tokenizer.padding_side = 'left'
+
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': self.tokenizer.eos_token})
 

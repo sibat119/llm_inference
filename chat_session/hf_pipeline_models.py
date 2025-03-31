@@ -44,6 +44,11 @@ class PipelineSession(ChatSession):
         #os.environ['TRANSFORMERS_CACHE'] = config['model_cache']
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+        # Set padding side based on model architecture
+        if self._is_decoder_only_model():
+            self.tokenizer.padding_side = 'left'
+
         self.pipeline = transformers.pipeline(
             'text-generation',
             model=model_name,

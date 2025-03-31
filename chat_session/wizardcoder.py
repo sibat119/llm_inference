@@ -29,6 +29,11 @@ class WizardCoderSession(ChatSession):
         #os.environ['TRANSFORMERS_CACHE'] = config['model_cache']
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+
+        # Set padding side based on model architecture
+        if self._is_decoder_only_model():
+            self.tokenizer.padding_side = 'left'
+
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
             torch_dtype=torch.float16,

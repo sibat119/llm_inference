@@ -32,6 +32,11 @@ class SalesforceSession(ChatSession):
         #os.environ['TRANSFORMERS_CACHE'] = config['model_cache']
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+
+        # Set padding side based on model architecture
+        if self._is_decoder_only_model():
+            self.tokenizer.padding_side = 'left'
+
         if 'codet5' in model_name:
             self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name,
                 torch_dtype=torch.float16,

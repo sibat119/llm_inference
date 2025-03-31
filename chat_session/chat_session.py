@@ -208,6 +208,8 @@ class ChatSession:
             "THUDM/codegeex4-all-9b",
             "Qwen/Qwen2.5-Coder-1.5B-Instruct",
             "Qwen/Qwen2.5-Coder-7B-Instruct",
+            "Qwen/Qwen2.5-7B-Instruct",
+            "meta-llama/Llama-3.1-8B-Instruct",
         ]
         
     def _apply_chat_template(self, usr_msg, sys_msg=None):
@@ -220,6 +222,7 @@ class ChatSession:
             or 'meta-llama/Llama-3.2-1B-Instruct' in self.model_name
             or 'meta-llama/Llama-3.2-3B-Instruct' in self.model_name
             or 'open_llama_13b' in self.model_name
+            or 'meta-llama/Llama-3.1-8B-Instruct' in self.model_name
             ):
             # breakpoint()
             message = self.tokenizer.apply_chat_template(
@@ -267,6 +270,58 @@ class ChatSession:
             return self._preprocess_instruct_model_msg(usr_msg, sys_msg)
         
         
+    def _is_decoder_only_model(self):
+        """
+        Determines if the current model is a decoder-only architecture.
+        
+        Returns:
+            bool: True if the model is decoder-only, False otherwise
+        """
+        try:
+            # Try to get model config
+            from transformers import AutoConfig
+            model_info = AutoConfig.from_pretrained(self.model_name)
+            
+            # Check for explicit decoder flag
+            if hasattr(model_info, 'is_decoder') and model_info.is_decoder:
+                return True
+                
+            # Check model type - common decoder-only architectures
+            decoder_only_types = [
+                'gpt', 'gpt2', 'gpt_neo', 'gptj', 'llama', 'mistral',
+                'falcon', 'mpt', 'opt', 'bloom', 'phi', 'gemma', 'qwen',
+                'codellama', 'starcoder', 'santacoder', 'incoder'
+            ]
+            
+            # Check if model type is explicitly a decoder-only architecture
+            if hasattr(model_info, 'model_type') and any(
+                    decoder_type in model_info.model_type.lower() 
+                    for decoder_type in decoder_only_types):
+                return True
+                
+            # Check model name for common decoder-only models
+            if any(decoder_type in self.model_name.lower() 
+                   for decoder_type in decoder_only_types):
+                return True
+                
+            # Check for encoder-decoder architectures (not decoder-only)
+            encoder_decoder_types = ['t5', 'bart', 'pegasus', 'codet5']
+            if hasattr(model_info, 'model_type') and any(
+                    ed_type in model_info.model_type.lower() 
+                    for ed_type in encoder_decoder_types):
+                return False
+            
+            if any(ed_type in self.model_name.lower() 
+                   for ed_type in encoder_decoder_types):
+                return False
+                
+            # Default - if uncertain, assume it's not decoder-only to avoid padding issues
+            return False
+            
+        except Exception as e:
+            # If we can't determine, assume False to be safe
+            print(f"Error determining model type: {e}")
+            return False
 
     def _clean_output(self, 
                       output: List[str],
