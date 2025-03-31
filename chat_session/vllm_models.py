@@ -47,12 +47,12 @@ class VllmSession(ChatSession):
             trust_remote_code=True,
             download_dir=config.get('model_cache', None),
             dtype=self.dtype,
-            tensor_parallel_size=tensor_parallel_size,
+            # tensor_parallel_size=tensor_parallel_size,
             max_model_len=self.max_length,
             # These options are for vllm==0.2.7
-            max_context_len_to_capture=self.max_length,
-            enforce_eager=True,
-            worker_use_ray=True,
+            # max_context_len_to_capture=self.max_length,
+            # enforce_eager=True,
+            # worker_use_ray=True,
         )
         
         self.tokenizer = self.model.get_tokenizer()
