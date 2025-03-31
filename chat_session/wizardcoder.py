@@ -34,7 +34,7 @@ class WizardCoderSession(ChatSession):
             torch_dtype=torch.float16,
             device_map='auto',
             trust_remote_code=True,
-            cache_dir=config['model_cache'],
+            cache_dir=config.get('model_cache', None),
         )
 
         self.generation_config = GenerationConfig(

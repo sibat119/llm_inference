@@ -38,7 +38,7 @@ class SalesforceSession(ChatSession):
                 low_cpu_mem_usage=True,
                 device_map='auto',
                 trust_remote_code=True,
-                cache_dir=config['model_cache'],
+                cache_dir=config.get('model_cache', None),
                 load_in_8bit=self.use_8bit,
                 do_sample=self.do_sample,
             )
@@ -49,7 +49,7 @@ class SalesforceSession(ChatSession):
                 torch_dtype=torch.float16,
                 device_map='auto',
                 trust_remote_code=True,
-                cache_dir=config['model_cache'],
+                cache_dir=config.get('model_cache', None),
                 do_sample=self.do_sample,
             )
         else:

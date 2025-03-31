@@ -45,7 +45,7 @@ class VllmSession(ChatSession):
         self.model = LLM(
             model_name,
             trust_remote_code=True,
-            download_dir=config['model_cache'],
+            download_dir=config.get('model_cache', None),
             dtype=self.dtype,
             tensor_parallel_size=tensor_parallel_size,
             max_model_len=self.max_length,

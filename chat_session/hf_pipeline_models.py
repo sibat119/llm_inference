@@ -53,7 +53,7 @@ class PipelineSession(ChatSession):
             tokenizer=self.tokenizer,
             batch_size=self.batch_size,
             model_kwargs = {
-                'cache_dir': config['model_cache'],
+                'cache_dir': config.get('model_cache', None),
                 'load_in_8bit': self.use_8bit, # do not set to true if use_4bit is set to true
                 'load_in_4bit': self.use_4bit, # do not set to true if use_8bit is set to true
             }
