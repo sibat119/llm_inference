@@ -213,10 +213,13 @@ class ChatSession:
         ]
         
     def _apply_chat_template(self, usr_msg, sys_msg=None):
-        msg = [
-                {"role": "system", "content": sys_msg},
-                {"role": "user", "content": usr_msg},
-            ]
+        if sys_msg:
+            msg = [
+                    {"role": "system", "content": sys_msg},
+                    {"role": "user", "content": usr_msg},
+                ]
+        else: 
+            msg = [{"role": "user", "content": usr_msg},]
         # breakpoint()
         if ('Meta-Llama-3-8B-Instruct' in self.model_name 
             or 'meta-llama/Llama-3.2-1B-Instruct' in self.model_name
@@ -247,9 +250,14 @@ class ChatSession:
                 add_generation_prompt=True
                 )
         elif ("codegemma" in self.model_name):
-            msg = [
-                {"role": "user", "content": f"{sys_msg}\n\n{usr_msg}"},
-            ]
+            if sys_msg:
+                msg = [
+                    {"role": "user", "content": f"{sys_msg}\n\n{usr_msg}"},
+                ]
+            else:
+                msg = [
+                    {"role": "user", "content": f"{usr_msg}"},
+                ]
             message = self.tokenizer.apply_chat_template(
                 msg, 
                 tokenize=False, 
