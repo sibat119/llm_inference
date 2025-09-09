@@ -23,8 +23,8 @@ def select_chat_model(cfg: dict, model_name: str, temperature: float = 0.1) -> C
     """
     if model_name in get_gpt_models():
         return  OpenAISession(cfg, model_name, temperature)
-    elif model_name in get_vllm_models():
-        return VllmSession(cfg, model_name, temperature)
+    # elif model_name in get_vllm_models():
+    #     return VllmSession(cfg, model_name, temperature)
     elif model_name in get_pipeline_models():
         return PipelineSession(cfg, model_name, temperature)
     elif model_name in get_incoder_models():
