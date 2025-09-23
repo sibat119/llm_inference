@@ -77,15 +77,15 @@ class HFGenerateSession(ChatSession):
             tokens = tokens.to('cuda')
 
         response = []
-        for i in tqdm(range(0, len(msg), self.batch_size)):
-            generated_ids = self.model.generate( 
-                                                input_ids=tokens['input_ids'][i:i+self.batch_size], 
-                                                attention_mask=tokens['attention_mask'][i:i+self.batch_size], 
-                                                temperature=self.temperature, 
-                                                top_p=self.top_p, 
-                                                max_new_tokens=self.num_output_tokens, 
-                                                do_sample=self.do_sample, 
-                                                )
+        # for i in tqdm(range(0, len(msg), self.batch_size)):
+        generated_ids = self.model.generate( 
+                            input_ids=tokens['input_ids'], 
+                            attention_mask=tokens['attention_mask'], 
+                            temperature=self.temperature, 
+                            top_p=self.top_p, 
+                            max_new_tokens=self.num_output_tokens, 
+                            do_sample=self.do_sample, 
+                            )
         if clean_output:
             response += self.tokenizer.batch_decode(generated_ids[:, tokens['input_ids'].shape[1]:], skip_special_tokens=True)
         else:
