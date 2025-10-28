@@ -4,7 +4,7 @@ from .hf_pipeline_models import PipelineSession
 from .hf_generate_models import HFGenerateSession
 from .wizardcoder import WizardCoderSession
 from .salesforce import SalesforceSession
-from .vllm_models import VllmSession
+# from .vllm_models import VllmSession
 from .incoder import IncoderSession
 
 from src.utils import (
