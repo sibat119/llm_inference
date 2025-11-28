@@ -35,24 +35,42 @@ class VllmSession(ChatSession):
         
         # self.is_generation_model = is_generation_model
         tensor_parallel_size = self._set_tensor_parallel(num_devices)
+        
+        if any(x in model_name.lower() for x in ['70b', '72b', '80b', '17b-16e', '30b-a3b', 'kimi-k2']):
 
+            print("Using tensor GPU Memory Utilization = 0.75 with tensor parallel size = 2")        
+            print(f"Attempting to load {model_name} with 4 bit precision...")
+            # Quantized (4-bit)
+                
+            self.model = LLM(
+                model=model_name,
+                tensor_parallel_size=2,
+                dtype=torch.bfloat16,
+                gpu_memory_utilization=0.75,
+                max_model_len=8192,           # reduce KV cache pressure
+                enforce_eager=True,           # avoids extra compile buffers
+                trust_remote_code=True,
+                quantization="bitsandbytes",  # 4-bit quantization
+                load_format="bitsandbytes"  # use bitsandbytes format
+            )
+        else:
+            self.model = LLM(
+                model_name,
+                trust_remote_code=True,
+                download_dir=config.get('model_cache', None),
+                dtype=self.dtype,
+                # tensor_parallel_size=tensor_parallel_size,
+                max_model_len=self.max_length,
+                # These options are for vllm==0.2.7
+                # max_context_len_to_capture=self.max_length,
+                # enforce_eager=True,
+                # worker_use_ray=True,
+            )
         # seqs = self.model.generate(msg,SamplingParams(top_p=self.top_p,max_tokens=self.num_output_tokens,temperature=0.01,))
         self.sampling_params = SamplingParams(
             top_p=self.top_p,
             max_tokens=self.num_output_tokens,
             temperature=self.temperature,
-        )
-        self.model = LLM(
-            model_name,
-            trust_remote_code=True,
-            download_dir=config.get('model_cache', None),
-            dtype=self.dtype,
-            # tensor_parallel_size=tensor_parallel_size,
-            max_model_len=self.max_length,
-            # These options are for vllm==0.2.7
-            # max_context_len_to_capture=self.max_length,
-            # enforce_eager=True,
-            # worker_use_ray=True,
         )
         
         self.tokenizer = self.model.get_tokenizer()
