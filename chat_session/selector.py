@@ -134,6 +134,8 @@ def get_vllm_models() -> list:
         'mistralai/Mistral-7B-v0.1',
         'mistralai/Mistral-7B-Instruct-v0.1',
         'mistralai/Mistral-7B-Instruct-v0.2',
+        'mistralai/Mistral-7B-Instruct-v0.3',
+        'mistralai/Mistral-Small-3.2-24B-Instruct-2506',
         'lmsys/vicuna-13b-v1.3',
         'Phind/Phind-CodeLlama-34B-v2',
         'codellama/CodeLlama-7b-Instruct-hf',
@@ -163,6 +165,7 @@ def get_vllm_models() -> list:
         'meta-llama/Llama-3.3-70B-Instruct',
         'meta-llama/Llama-4-Scout-17B-16E-Instruct'
         'deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct',
+        'Qwen/Qwen2.5-7B-Instruct',
         'Qwen/Qwen2.5-72B-Instruct',
         'Qwen/Qwen3-30B-A3B-Instruct-2507',
         'google/gemma-3-27b-it',
