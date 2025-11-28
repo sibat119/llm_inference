@@ -4,12 +4,8 @@ from .hf_pipeline_models import PipelineSession
 from .hf_generate_models import HFGenerateSession
 from .wizardcoder import WizardCoderSession
 from .salesforce import SalesforceSession
-# from .vllm_models import VllmSession
+from .vllm_models import VllmSession
 from .incoder import IncoderSession
-
-from src.utils import (
-    display
-)
 
 def select_chat_model(cfg: dict, model_name: str, temperature: float = 0.1) -> ChatSession:
     """
@@ -23,8 +19,8 @@ def select_chat_model(cfg: dict, model_name: str, temperature: float = 0.1) -> C
     """
     if model_name in get_gpt_models():
         return  OpenAISession(cfg, model_name, temperature)
-    # elif model_name in get_vllm_models():
-    #     return VllmSession(cfg, model_name, temperature)
+    elif model_name in get_vllm_models():
+       return VllmSession(cfg, model_name, temperature)
     elif model_name in get_pipeline_models():
         return PipelineSession(cfg, model_name, temperature)
     elif model_name in get_incoder_models():
@@ -36,7 +32,7 @@ def select_chat_model(cfg: dict, model_name: str, temperature: float = 0.1) -> C
     elif model_name in get_hf_generate_models() or get_vllm_models():
         return HFGenerateSession(cfg, model_name, temperature)
     else:
-        display.error(f'model: {model_name} is an unsupported option')
+        print(f'model: {model_name} is an unsupported option')
         raise ValueError()
 
 def get_all_models() -> list:
@@ -134,6 +130,8 @@ def get_vllm_models() -> list:
         'mistralai/Mistral-7B-v0.1',
         'mistralai/Mistral-7B-Instruct-v0.1',
         'mistralai/Mistral-7B-Instruct-v0.2',
+        'mistralai/Mistral-7B-Instruct-v0.3',
+        'mistralai/Mistral-Small-3.2-24B-Instruct-2506',
         'lmsys/vicuna-13b-v1.3',
         'Phind/Phind-CodeLlama-34B-v2',
         'codellama/CodeLlama-7b-Instruct-hf',
@@ -159,8 +157,17 @@ def get_vllm_models() -> list:
         'meta-llama/Llama-3.2-3B-Instruct',
         'meta-llama/Meta-Llama-3-8B-Instruct',
         'meta-llama/Llama-3.1-8B-Instruct',
+        'meta-llama/Llama-3.1-70B-Instruct',
         'meta-llama/Llama-3.3-70B-Instruct',
+        'meta-llama/Llama-4-Scout-17B-16E-Instruct'
         'deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct',
+        'Qwen/Qwen2.5-7B-Instruct',
+        'Qwen/Qwen2.5-72B-Instruct',
+        'Qwen/Qwen3-30B-A3B-Instruct-2507',
+        'google/gemma-3-27b-it',
+        'microsoft/phi-4',
+        'CohereLabs/aya-expanse-32b',
+        'CohereLabs/aya-expanse-8b',
         # 'BanglaLLM/bangla-llama-7b-base-v0.1'
     ])
 
