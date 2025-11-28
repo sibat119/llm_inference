@@ -51,7 +51,9 @@ class VllmSession(ChatSession):
                 enforce_eager=True,           # avoids extra compile buffers
                 trust_remote_code=True,
                 quantization="bitsandbytes",  # 4-bit quantization
-                load_format="bitsandbytes"  # use bitsandbytes format
+                load_format="bitsandbytes",  # use bitsandbytes format
+                device="cuda",
+                distributed_executor_backend="mp",
             )
         else:
             self.model = LLM(
