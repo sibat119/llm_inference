@@ -57,7 +57,6 @@ class VllmSession(ChatSession):
                 trust_remote_code=True,
                 quantization="bitsandbytes",  # 4-bit quantization
                 load_format="bitsandbytes",  # use bitsandbytes format
-                device="cuda",
                 distributed_executor_backend="mp",
             )
         else:
