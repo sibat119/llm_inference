@@ -35,7 +35,7 @@ class VllmSession(ChatSession):
         )
         
         # self.is_generation_model = is_generation_model
-        tensor_parallel_size = self._set_tensor_parallel(num_devices)
+        # tensor_parallel_size = self._set_tensor_parallel(num_devices)
         
         
         os.environ["VLLM_LOGGING_LEVEL"] = "ERROR"
