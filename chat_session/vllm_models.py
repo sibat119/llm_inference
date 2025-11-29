@@ -4,6 +4,7 @@ import os
 #os.environ['WORLD_SIZE'] = '1'
 import yaml
 import torch
+import os
 import transformers
 from vllm import LLM, SamplingParams
 from vllm.transformers_utils.config import get_config
@@ -35,6 +36,10 @@ class VllmSession(ChatSession):
         
         # self.is_generation_model = is_generation_model
         tensor_parallel_size = self._set_tensor_parallel(num_devices)
+        
+        
+        os.environ["VLLM_LOGGING_LEVEL"] = "ERROR"
+        os.environ["VLLM_CONFIGURE_LOGGING"] = "0"
         
         if any(x in model_name.lower() for x in ['70b', '72b', '80b', '17b-16e', '30b-a3b', 'kimi-k2']):
 
@@ -83,11 +88,18 @@ class VllmSession(ChatSession):
     def get_response(self,
                      user_message:   str | list,
                      system_message: str | list = None,
-                     clean_output:   bool = True):
+                     clean_output:   bool = True,
+                     temperature: int = 0.2):
         """
         Retrieves a response from the vLLM language model.
         """
-
+        
+        sampling_params = SamplingParams(
+            temperature=temperature,
+            max_tokens=self.num_output_tokens,
+            top_p=0.9,
+        )
+        
         msg, return_str = self._prepare_batch(user_message, system_message)
         # Implement the logic to interact with the LLAMA2 model's API
         # This is a placeholder implementation
@@ -97,7 +109,8 @@ class VllmSession(ChatSession):
         #for i in range(0, len(msg), bsize):
         seqs = self.model.generate(
             msg,
-            sampling_params=self.sampling_params,
+            sampling_params=sampling_params,
+            use_tqdm=False,
         )
 
         # vLLM automatically removes the prompt from the output
