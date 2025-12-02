@@ -166,7 +166,7 @@ def get_vllm_models() -> list:
         'Qwen/Qwen2.5-72B-Instruct',
         'Qwen/Qwen3-30B-A3B-Instruct-2507',
         'google/gemma-3-27b-it',
-        'openai/gpt-oss-20',
+        'openai/gpt-oss-20b',
         'microsoft/phi-4',
         'CohereLabs/aya-expanse-32b',
         'CohereLabs/aya-expanse-8b',
