@@ -41,7 +41,7 @@ class VllmSession(ChatSession):
         os.environ["VLLM_LOGGING_LEVEL"] = "ERROR"
         os.environ["VLLM_CONFIGURE_LOGGING"] = "0"
         
-        if any(x in model_name.lower() for x in ['70b', '72b', '80b', '17b-16e', 'kimi-k2']):
+        if self.require_parallel(model_name):
 
             print("Using tensor GPU Memory Utilization = 0.75 with tensor parallel size = 2")        
             print(f"Attempting to load {model_name} with 4 bit precision...")
@@ -81,6 +81,16 @@ class VllmSession(ChatSession):
         
         self.tokenizer = self.model.get_tokenizer()
         
+    def require_parallel(self, model_name):
+        big_model_list = [
+            'meta-llama/Llama-3.3-70B-Instruct',
+            'meta-llama/Llama-4-Scout-17B-16E-Instruct',
+            'Qwen/Qwen2.5-72B-Instruct',
+            'Qwen/Qwen3-30B-A3B-Instruct-2507',
+            'google/gemma-3-27b-it',
+            'CohereLabs/aya-expanse-32b',
+        ]
+        return model_name in big_model_list
     def get_session_type(self) -> str:
         return 'vllm'
 
