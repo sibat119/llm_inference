@@ -67,6 +67,7 @@ class VllmSession(ChatSession):
                 download_dir=config.get('model_cache', None),
                 dtype=torch.bfloat16,
                 gpu_memory_utilization=0.75,
+                tokenizer_mode= "mistral" if "mistral" in model_name else "auto",
                 # quantization="bitsandbytes",  # 4-bit quantization
                 # load_format="bitsandbytes",  # use bitsandbytes format
                 max_model_len=self.max_length,
