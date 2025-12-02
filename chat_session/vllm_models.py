@@ -41,7 +41,7 @@ class VllmSession(ChatSession):
         os.environ["VLLM_LOGGING_LEVEL"] = "ERROR"
         os.environ["VLLM_CONFIGURE_LOGGING"] = "0"
         
-        if any(x in model_name.lower() for x in ['70b', '72b', '80b', '17b-16e', '30b-a3b', 'kimi-k2']):
+        if any(x in model_name.lower() for x in ['70b', '72b', '80b', '17b-16e', 'kimi-k2']):
 
             print("Using tensor GPU Memory Utilization = 0.75 with tensor parallel size = 2")        
             print(f"Attempting to load {model_name} with 4 bit precision...")
