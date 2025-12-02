@@ -63,14 +63,13 @@ class VllmSession(ChatSession):
             self.model = LLM(
                 model_name,
                 trust_remote_code=True,
+                enforce_eager=True,           # avoids extra compile buffers
                 download_dir=config.get('model_cache', None),
-                dtype=self.dtype,
-                # tensor_parallel_size=tensor_parallel_size,
+                dtype=torch.bfloat16,
+                gpu_memory_utilization=0.75,
+                # quantization="bitsandbytes",  # 4-bit quantization
+                # load_format="bitsandbytes",  # use bitsandbytes format
                 max_model_len=self.max_length,
-                # These options are for vllm==0.2.7
-                # max_context_len_to_capture=self.max_length,
-                # enforce_eager=True,
-                # worker_use_ray=True,
             )
         # seqs = self.model.generate(msg,SamplingParams(top_p=self.top_p,max_tokens=self.num_output_tokens,temperature=0.01,))
         self.sampling_params = SamplingParams(
