@@ -210,6 +210,7 @@ class ChatSession:
             "Qwen/Qwen2.5-Coder-7B-Instruct",
             "Qwen/Qwen2.5-7B-Instruct",
             "meta-llama/Llama-3.1-8B-Instruct",
+            "microsoft/phi-4",
         ]
         
     def _apply_chat_template(self, usr_msg, sys_msg=None):
@@ -231,7 +232,7 @@ class ChatSession:
             message = self.tokenizer.apply_chat_template(
                 msg,
                 tokenize=False,
-            )
+            )   
             
         elif 'OLMo-7B-Instruct' in self.model_name:
             message = self.tokenizer.apply_chat_template(
