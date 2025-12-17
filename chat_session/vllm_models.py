@@ -52,7 +52,7 @@ class VllmSession(ChatSession):
                 tensor_parallel_size=2,
                 dtype=torch.bfloat16,
                 gpu_memory_utilization=0.75,
-                max_model_len=4096,           # reduce KV cache pressure
+                max_model_len=8192,           # reduce KV cache pressure
                 enforce_eager=True,           # avoids extra compile buffers
                 trust_remote_code=True,
                 quantization="bitsandbytes",  # 4-bit quantization
@@ -73,7 +73,7 @@ class VllmSession(ChatSession):
                 load_format="mistral" if "mistral" in model_name else "auto",
                 # quantization="bitsandbytes",  # 4-bit quantization
                 # load_format="bitsandbytes",  # use bitsandbytes format
-                max_model_len=self.max_length,
+                max_model_len=8192,
             )
         # seqs = self.model.generate(msg,SamplingParams(top_p=self.top_p,max_tokens=self.num_output_tokens,temperature=0.01,))
         self.sampling_params = SamplingParams(
