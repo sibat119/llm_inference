@@ -66,14 +66,14 @@ class VllmSession(ChatSession):
                 enforce_eager=True,           # avoids extra compile buffers
                 download_dir=config.get('model_cache', None),
                 dtype=torch.bfloat16,
-                tensor_parallel_size=2,
-                gpu_memory_utilization=0.8,
+                tensor_parallel_size=1,
+                gpu_memory_utilization=0.9,
                 tokenizer_mode="mistral" if "mistral" in model_name else "auto",
                 config_format="mistral" if "mistral" in model_name else "auto",
                 load_format="mistral" if "mistral" in model_name else "auto",
                 # quantization="bitsandbytes",  # 4-bit quantization
                 # load_format="bitsandbytes",  # use bitsandbytes format
-                max_model_len=8192,
+                # max_model_len=8192,
             )
         # seqs = self.model.generate(msg,SamplingParams(top_p=self.top_p,max_tokens=self.num_output_tokens,temperature=0.01,))
         self.sampling_params = SamplingParams(
@@ -93,6 +93,8 @@ class VllmSession(ChatSession):
             'google/gemma-3-27b-it',
             'CohereLabs/aya-expanse-32b',
             'Qwen/Qwen2.5-32B-Instruct',
+            'mistralai/Mistral-Small-3.2-24B-Instruct-2506',
+            'google/gemma-2-9b-it',
         ]
         return model_name in big_model_list
     def get_session_type(self) -> str:
@@ -190,26 +192,38 @@ class VllmSession(ChatSession):
                 msg = sys_msg.strip() + '\n\n' + msg
             return msg
         elif (self.model_name == 'meta-llama/Llama-3.2-1B-Instruct'
-              or self.model_name == 'meta-llama/Llama-3.2-3B-Instruct'
-              or self.model_name == 'meta-llama/Llama-3.1-8B-Instruct'
-              or self.model_name == 'meta-llama/Llama-3.3-70B-Instruct'
-              or self.model_name == 'microsoft/phi-4'
-              or self.model_name == 'microsoft/Phi-4-mini-instruct'
-              or self.model_name == 'Qwen/Qwen3-30B-A3B-Instruct-2507'
-              or self.model_name == 'Qwen/Qwen2.5-7B-Instruct'
-              or self.model_name == 'Qwen/Qwen2.5-14B-Instruct'
-              or self.model_name == 'Qwen/Qwen2.5-32B-Instruct'
-              or self.model_name == 'Qwen/Qwen2.5-72B-Instruct'
-              or self.model_name == 'CohereLabs/aya-expanse-8b'
-              or self.model_name == 'CohereLabs/aya-expanse-32b'
-              or self.model_name == 'openai/gpt-oss-20b'
-              or self.model_name == 'google/gemma-2-27b-it'
-              or self.model_name == 'mistralai/Mistral-7B-Instruct-v0.3'
-              or self.model_name == 'mistralai/Mistral-Small-3.2-24B-Instruct-2506'
-              or self.model_name == 'mistralai/Mixtral-8x7B-Instruct-v0.1'
-              or self.model_name == '01-ai/Yi-1.5-6B-Chat'
-              or self.model_name == '01-ai/Yi-1.5-34B-Chat'
-              ):
+                or self.model_name == 'meta-llama/Llama-3.2-3B-Instruct'
+                or self.model_name == 'meta-llama/Llama-3.1-8B-Instruct'
+                or self.model_name == 'meta-llama/Llama-3.3-70B-Instruct'
+                or self.model_name == 'microsoft/phi-4'
+                or self.model_name == 'microsoft/Phi-4-mini-instruct'
+                or self.model_name == 'Qwen/Qwen3-30B-A3B-Instruct-2507'
+                or self.model_name == 'Qwen/Qwen2.5-7B-Instruct'
+                or self.model_name == 'Qwen/Qwen2.5-14B-Instruct'
+                or self.model_name == 'Qwen/Qwen2.5-32B-Instruct'
+                or self.model_name == 'Qwen/Qwen2.5-72B-Instruct'
+                or self.model_name == 'CohereLabs/aya-expanse-8b'
+                or self.model_name == 'CohereLabs/aya-expanse-32b'
+                or self.model_name == 'openai/gpt-oss-20b'
+                or self.model_name == 'google/gemma-2-27b-it'
+                or self.model_name == 'mistralai/Mistral-7B-Instruct-v0.3'
+                or self.model_name == 'mistralai/Mistral-Small-3.2-24B-Instruct-2506'
+                or self.model_name == 'mistralai/Mixtral-8x7B-Instruct-v0.1'
+                or self.model_name == '01-ai/Yi-1.5-6B-Chat'
+                or self.model_name == '01-ai/Yi-1.5-34B-Chat'
+                or self.model_name == "microsoft/Phi-4-mini-instruct"
+                or self.model_name == "microsoft/Phi-4-mini-instruct"
+                or self.model_name == "microsoft/Phi-3.5-mini-instruct"
+                or self.model_name == "microsoft/phi-4"
+                or self.model_name == "deepseek-ai/DeepSeek-V2-Lite-Chat"
+                or self.model_name =="google/gemma-3-4b-it"
+                or self.model_name == "google/gemma-3-12b-it"
+                or self.model_name == "google/gemma-2-9b-it"
+                or self.model_name == "tiiuae/Falcon3-7B-Instruct"
+                or self.model_name == "stabilityai/stablelm-2-1_6b"
+                or self.model_name == "Qwen/Qwen2.5-3B-Instruct"
+                or self.model_name == "Qwen/Qwen3-8B"
+                        ):
             if sys_msg:
                 msg = [
                         {"role": "system", "content": sys_msg},
