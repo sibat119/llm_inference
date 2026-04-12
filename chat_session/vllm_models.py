@@ -29,13 +29,13 @@ class VllmSession(ChatSession):
         super().__init__(config, model_name, temperature)  # Initialize the base class with the loaded configuration
 
         # set number of devices to use
-        num_devices = config.get(
-            'num_devices',
-            torch.cuda.device_count()
-        )
+        # num_devices = config.get(
+        #     'num_devices',
+        #     torch.cuda.device_count()
+        # )
         
-        # self.is_generation_model = is_generation_model
-        tensor_parallel_size = self._set_tensor_parallel(num_devices)
+        # # self.is_generation_model = is_generation_model
+        # tensor_parallel_size = self._set_tensor_parallel(num_devices)
         
         
         os.environ["VLLM_LOGGING_LEVEL"] = "ERROR"
@@ -49,15 +49,17 @@ class VllmSession(ChatSession):
                 
             self.model = LLM(
                 model=model_name,
-                tensor_parallel_size=2,
+                tensor_parallel_size=1,
                 dtype=torch.bfloat16,
-                gpu_memory_utilization=0.75,
+                gpu_memory_utilization=0.85,
                 max_model_len=8192,           # reduce KV cache pressure
                 enforce_eager=True,           # avoids extra compile buffers
                 trust_remote_code=True,
-                quantization="bitsandbytes",  # 4-bit quantization
-                load_format="bitsandbytes",  # use bitsandbytes format
-                distributed_executor_backend="mp",
+                quantization=None if "mistral" in model_name else "bitsandbytes",  # 4-bit quantization
+                tokenizer_mode="mistral" if "mistral" in model_name else "auto",
+                config_format="mistral" if "mistral" in model_name else "auto",
+                load_format="mistral" if "mistral" in model_name else "bitsandbytes",
+                distributed_executor_backend="mp" if "mistral" not in model_name else None,
             )
         else:
             self.model = LLM(
@@ -67,7 +69,7 @@ class VllmSession(ChatSession):
                 download_dir=config.get('model_cache', None),
                 dtype=torch.bfloat16,
                 tensor_parallel_size=1,
-                gpu_memory_utilization=0.9,
+                gpu_memory_utilization=0.85,
                 tokenizer_mode="mistral" if "mistral" in model_name else "auto",
                 config_format="mistral" if "mistral" in model_name else "auto",
                 load_format="mistral" if "mistral" in model_name else "auto",
@@ -83,6 +85,15 @@ class VllmSession(ChatSession):
         )
         
         self.tokenizer = self.model.get_tokenizer()
+        # ── Compatibility shim for MistralCommonTokenizer (Mistral-Small-3.2+) ──
+        # MistralCommonTokenizer does not implement the standard PreTrainedTokenizer
+        # interface, so attributes like all_special_ids are missing.
+        if not hasattr(self.tokenizer, 'all_special_ids'):
+            self.tokenizer.all_special_ids = []
+        if not hasattr(self.tokenizer, 'all_special_tokens'):
+            self.tokenizer.all_special_tokens = []
+        if not hasattr(self.tokenizer, 'all_special_tokens_extended'):
+            self.tokenizer.all_special_tokens_extended = []
         
     def require_parallel(self, model_name):
         big_model_list = [
@@ -94,7 +105,7 @@ class VllmSession(ChatSession):
             'CohereLabs/aya-expanse-32b',
             'Qwen/Qwen2.5-32B-Instruct',
             'mistralai/Mistral-Small-3.2-24B-Instruct-2506',
-            'google/gemma-2-9b-it',
+            # 'google/gemma-2-9b-it',
         ]
         return model_name in big_model_list
     def get_session_type(self) -> str:
@@ -104,15 +115,17 @@ class VllmSession(ChatSession):
                      user_message:   str | list,
                      system_message: str | list = None,
                      clean_output:   bool = True,
-                     temperature: int = 0.2):
+                     temperature: int = 0.2,
+                     return_logprobs: bool = False):
         """
         Retrieves a response from the vLLM language model.
         """
         
         sampling_params = SamplingParams(
-            temperature=temperature,
-            max_tokens=self.num_output_tokens,
-            top_p=0.9,
+            temperature =temperature,
+            max_tokens  =self.num_output_tokens,
+            top_p       =0.9,
+            logprobs    = 1 if return_logprobs else None,
         )
         
         msg = self._prepare_batch_vllm(user_message, system_message)
@@ -131,31 +144,71 @@ class VllmSession(ChatSession):
             msg,
             sampling_params=sampling_params,
             use_tqdm=False,
+            chat_template_kwargs={"enable_thinking": False},
         )
 
         # vLLM automatically removes the prompt from the output
         # so if clean_output is set to False then we need to add the prompt back in
-        seqs = [seq.outputs[0].text for seq in seqs]
+        texts = [seq.outputs[0].text for seq in seqs]
+
         if not clean_output:
-            seqs = [prompt + seq for prompt, seq in zip(msg, seqs)]
+            texts = [prompt + text for prompt, text in zip(msg, texts)]
 
         if self.model_name == "openai/gpt-oss-20b":
             answers = []
-            for s in seqs:
+            for s in texts:
                 if "So answer:" in s:
                     answers.append(s.split("So answer:")[1])
                 else:
                     answers.append(s)
-            
-            return answers
-        # Update history and usage statistics
-        # [Rest of the method should handle response parsing and updating the session similar to OpenAISession]
-        # if return_str:
-        #     return seqs[0]#.outputs[0].text
-        # else:
-            #response = [seq.outputs[0].text for seq in seqs]
-        return seqs
+            texts = answers
 
+        # ── NEW: extract logprob confidences (only when requested) ────────────
+        if return_logprobs:
+            logprob_confs = []
+            for seq in seqs:
+                token_logprobs = seq.outputs[0].logprobs   # List[Dict] or None
+                conf = self._mean_exp_logprob(token_logprobs)
+                logprob_confs.append(conf)
+            return texts, logprob_confs   # ← (List[str], List[float])
+        
+        
+        return texts
+
+    @staticmethod
+    def _mean_exp_logprob(token_logprobs) -> float:
+        """
+        Converts a vLLM token logprobs list into a scalar confidence in (0, 1].
+
+        vLLM logprobs format (with logprobs=1):
+            List[Dict[int, Logprob]] — one dict per generated token,
+            each dict maps token_id → Logprob(logprob=float, ...)
+
+        Returns mean exp(logprob) across all tokens.
+        Falls back to 0.5 (neutral uncertainty) on any failure.
+        """
+        import math
+
+        if not token_logprobs:
+            return 0.5
+
+        try:
+            lp_values = []
+            for token_dict in token_logprobs:
+                if token_dict is None:
+                    continue
+                # Each dict has exactly one entry when logprobs=1
+                top_lp = next(iter(token_dict.values())).logprob
+                lp_values.append(top_lp)
+
+            if not lp_values:
+                return 0.5
+
+            mean_lp = sum(lp_values) / len(lp_values)
+            return float(math.exp(mean_lp))   # safely in (0, 1]
+
+        except Exception:
+            return 0.5
     
     def prepare_message(self, usr_msg, sys_msg):
         if self.model_name == 'Phind/Phind-CodeLlama-34B-v2':
