@@ -8,6 +8,7 @@ import os
 import transformers
 from vllm import LLM, SamplingParams
 from vllm.transformers_utils.config import get_config
+from vllm.lora.request import LoRARequest
 
 
 # local imports
@@ -60,6 +61,8 @@ class VllmSession(ChatSession):
                 config_format="mistral" if "mistral" in model_name else "auto",
                 load_format="mistral" if "mistral" in model_name else "bitsandbytes",
                 distributed_executor_backend="mp" if "mistral" not in model_name else None,
+                enable_lora=True,           
+                max_lora_rank=16,           
             )
         else:
             self.model = LLM(
@@ -73,6 +76,8 @@ class VllmSession(ChatSession):
                 tokenizer_mode="mistral" if "mistral" in model_name else "auto",
                 config_format="mistral" if "mistral" in model_name else "auto",
                 load_format="mistral" if "mistral" in model_name else "auto",
+                enable_lora=True,           
+                max_lora_rank=16,           
                 # quantization="bitsandbytes",  # 4-bit quantization
                 # load_format="bitsandbytes",  # use bitsandbytes format
                 # max_model_len=8192,
@@ -116,7 +121,9 @@ class VllmSession(ChatSession):
                      system_message: str | list = None,
                      clean_output:   bool = True,
                      temperature: int = 0.2,
-                     return_logprobs: bool = False):
+                     return_logprobs: bool = False,
+                     lora_dir: str = None,
+                     ):
         """
         Retrieves a response from the vLLM language model.
         """
@@ -127,6 +134,8 @@ class VllmSession(ChatSession):
             top_p       =0.9,
             logprobs    = 1 if return_logprobs else None,
         )
+        
+        lora_request = LoRARequest("peft_adapter", 1, lora_dir) if lora_dir else None
         
         msg = self._prepare_batch_vllm(user_message, system_message)
         # Implement the logic to interact with the LLAMA2 model's API
@@ -145,6 +154,7 @@ class VllmSession(ChatSession):
             sampling_params=sampling_params,
             use_tqdm=False,
             chat_template_kwargs={"enable_thinking": False},
+            lora_request=lora_request,
         )
 
         # vLLM automatically removes the prompt from the output
