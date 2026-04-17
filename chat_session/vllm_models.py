@@ -19,7 +19,7 @@ class VllmSession(ChatSession):
     A subclass of ChatSession specifically for the LLAMA2 language model, using YAML configuration.
     """
 
-    def __init__(self, config, model_name, temperature=0.1):
+    def __init__(self, config, model_name, temperature=0.1, use_lora=False):
         """
         Initializes the LLAMA2 chat session.
 
@@ -61,8 +61,8 @@ class VllmSession(ChatSession):
                 config_format="mistral" if "mistral" in model_name else "auto",
                 load_format="mistral" if "mistral" in model_name else "bitsandbytes",
                 distributed_executor_backend="mp" if "mistral" not in model_name else None,
-                enable_lora=True,           
-                max_lora_rank=16,           
+                enable_lora=use_lora,           
+                max_lora_rank=16 if use_lora else None,           
             )
         else:
             self.model = LLM(
@@ -76,8 +76,8 @@ class VllmSession(ChatSession):
                 tokenizer_mode="mistral" if "mistral" in model_name else "auto",
                 config_format="mistral" if "mistral" in model_name else "auto",
                 load_format="mistral" if "mistral" in model_name else "auto",
-                enable_lora=True,           
-                max_lora_rank=16,           
+                enable_lora=use_lora,           
+                max_lora_rank=16 if use_lora else None,                    
                 # quantization="bitsandbytes",  # 4-bit quantization
                 # load_format="bitsandbytes",  # use bitsandbytes format
                 # max_model_len=8192,
@@ -123,6 +123,7 @@ class VllmSession(ChatSession):
                      temperature: int = 0.2,
                      return_logprobs: bool = False,
                      lora_dir: str = None,
+                     use_tqdm=False,
                      ):
         """
         Retrieves a response from the vLLM language model.
@@ -152,7 +153,7 @@ class VllmSession(ChatSession):
         seqs = self.model.chat(
             msg,
             sampling_params=sampling_params,
-            use_tqdm=False,
+            use_tqdm=use_tqdm,
             chat_template_kwargs={"enable_thinking": False},
             lora_request=lora_request,
         )

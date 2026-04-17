@@ -7,7 +7,7 @@ from .salesforce import SalesforceSession
 from .vllm_models import VllmSession
 from .incoder import IncoderSession
 
-def select_chat_model(cfg: dict, model_name: str, temperature: float = 0.1) -> ChatSession:
+def select_chat_model(cfg: dict, model_name: str, temperature: float = 0.1, use_lora=False) -> ChatSession:
     """
     returns a ChatSession object given the model name and config
     Input:
@@ -20,7 +20,7 @@ def select_chat_model(cfg: dict, model_name: str, temperature: float = 0.1) -> C
     if model_name in get_gpt_models():
         return  OpenAISession(cfg, model_name, temperature)
     elif model_name in get_vllm_models():
-       return VllmSession(cfg, model_name, temperature)
+       return VllmSession(cfg, model_name, temperature, use_lora)
     elif model_name in get_pipeline_models():
         return PipelineSession(cfg, model_name, temperature)
     elif model_name in get_incoder_models():
