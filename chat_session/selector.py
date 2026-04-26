@@ -19,7 +19,7 @@ def select_chat_model(cfg: dict, model_name: str, temperature: float = 0.1, use_
     """
     if model_name in get_gpt_models():
         return  OpenAISession(cfg, model_name, temperature)
-    elif model_name in get_vllm_models():
+    elif model_name in get_vllm_models() or "checkpoints/vllm_merged_adapter" in model_name:
        return VllmSession(cfg, model_name, temperature, use_lora)
     elif model_name in get_pipeline_models():
         return PipelineSession(cfg, model_name, temperature)
