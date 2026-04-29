@@ -1,11 +1,6 @@
 #external imports
-import os
-#os.environ['CUDA_VISIBLE_DEVICES'] = '4'
-#os.environ['WORLD_SIZE'] = '1'
-import yaml
+import os, subprocess
 import torch
-import os
-import transformers
 from vllm import LLM, SamplingParams
 from vllm.transformers_utils.config import get_config
 from vllm.lora.request import LoRARequest
@@ -41,6 +36,11 @@ class VllmSession(ChatSession):
         
         os.environ["VLLM_LOGGING_LEVEL"] = "ERROR"
         os.environ["VLLM_CONFIGURE_LOGGING"] = "0"
+        # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+        
+        # print("CUDA_VISIBLE_DEVICES =", os.environ.get("CUDA_VISIBLE_DEVICES"))
+        # result = subprocess.run(["nvidia-smi", "-L"], capture_output=True, text=True)
+        # print(result.stdout)
         
         if self.require_parallel(model_name):
 
@@ -287,6 +287,7 @@ class VllmSession(ChatSession):
                 or self.model_name == "stabilityai/stablelm-2-1_6b"
                 or self.model_name == "Qwen/Qwen2.5-3B-Instruct"
                 or self.model_name == "Qwen/Qwen3-8B"
+                or self.model_name == "checkpoints/vllm_merged_adapter"
                         ):
             if sys_msg:
                 msg = [
