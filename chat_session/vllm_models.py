@@ -50,7 +50,7 @@ class VllmSession(ChatSession):
                 
             self.model = LLM(
                 model=model_name,
-                tensor_parallel_size=1,
+                tensor_parallel_size=2 if torch.cuda.device_count() > 1 else 1,
                 dtype=torch.bfloat16,
                 gpu_memory_utilization=0.85,
                 max_model_len=8192,           # reduce KV cache pressure
@@ -71,8 +71,8 @@ class VllmSession(ChatSession):
                 enforce_eager=True,           # avoids extra compile buffers
                 download_dir=config.get('model_cache', None),
                 dtype=torch.bfloat16,
-                tensor_parallel_size=1,
-                gpu_memory_utilization=0.85,
+                tensor_parallel_size=2 if torch.cuda.device_count() > 1 else 1,
+                gpu_memory_utilization=0.8,
                 tokenizer_mode="mistral" if "mistral" in model_name else "auto",
                 config_format="mistral" if "mistral" in model_name else "auto",
                 load_format="mistral" if "mistral" in model_name else "auto",
@@ -120,7 +120,7 @@ class VllmSession(ChatSession):
                      user_message:   str | list,
                      system_message: str | list = None,
                      clean_output:   bool = True,
-                     temperature: int = 0.2,
+                     temperature: int = 0.1,
                      return_logprobs: bool = False,
                      lora_dir: str = None,
                      use_tqdm=False,
