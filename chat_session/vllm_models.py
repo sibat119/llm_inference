@@ -80,14 +80,14 @@ class VllmSession(ChatSession):
                 max_lora_rank=16 if use_lora else None,                    
                 # quantization="bitsandbytes",  # 4-bit quantization
                 # load_format="bitsandbytes",  # use bitsandbytes format
-                # max_model_len=8192,
+                max_model_len=8192,
             )
         # seqs = self.model.generate(msg,SamplingParams(top_p=self.top_p,max_tokens=self.num_output_tokens,temperature=0.01,))
-        self.sampling_params = SamplingParams(
-            top_p=self.top_p,
-            max_tokens=self.num_output_tokens,
-            temperature=self.temperature,
-        )
+        # self.sampling_params = SamplingParams(
+        #     top_p=self.top_p,
+        #     max_tokens=self.num_output_tokens,
+        #     temperature=self.temperature,
+        # )
         
         self.tokenizer = self.model.get_tokenizer()
         # ── Compatibility shim for MistralCommonTokenizer (Mistral-Small-3.2+) ──
